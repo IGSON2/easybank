@@ -1,16 +1,25 @@
-postgres:
-	docker run --name db -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=123 -d postgres:15-alpine
+mysql:
+	docker run --name db -e MYSQL_ROOT_PASSWORD=123 -p 3306:3306 -d mysql:latest
+
+exec:
+	docker exec -it db bash -c "mysql -u root -p"
 
 createdb:
-	docker exec -it db createdb --username=root --owner=root easy_bank
+	docker exec -it db bash -c "create database easy_bank default CHARACTER SET UTF8;"
 
 dropdb:
-	docker exec -it db dropdb easy_bank
+	docker exec -it db drop database easy_bank;
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:123@localhost:5432/easy_bank?sslmode=disable" -verbose up
+	migrate -path db/migration -database "mysql://root:123@tcp(localhost:3306)/easy_bank" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:123@localhost:5432/easy_bank?sslmode=disable" -verbose down
+	migrate -path db/migration -database "mysql://root:123@tcp(localhost:3306)/easy_bank" -verbose down
 
-.PHONY: postgres createdb dropdb migrateup migratedown
+sqlc:
+	sqlc generate
+
+test:
+	go test -v -cover ./...
+
+.PHONY: mysql exec createdb dropdb migrateup migratedown sqlc test
