@@ -10,6 +10,21 @@ import (
 	"database/sql"
 )
 
+const addAccountBalance = `-- name: AddAccountBalance :execresult
+UPDATE accounts
+SET balance = balance + ?
+WHERE id = ?
+`
+
+type AddAccountBalanceParams struct {
+	Amount int64 `json:"amount"`
+	ID     int64 `json:"id"`
+}
+
+func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, addAccountBalance, arg.Amount, arg.ID)
+}
+
 const createAccount = `-- name: CreateAccount :execresult
 INSERT INTO accounts (
   owner,
@@ -47,6 +62,24 @@ WHERE id = ? LIMIT 1
 
 func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 	row := q.db.QueryRowContext(ctx, getAccount, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getAccountForUpdate = `-- name: GetAccountForUpdate :one
+SELECT id, owner, balance, currency, created_at FROM accounts
+WHERE id = ? LIMIT 1 FOR UPDATE
+`
+
+func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {
+	row := q.db.QueryRowContext(ctx, getAccountForUpdate, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,

@@ -14,14 +14,18 @@ const (
 	dbSourceName = "root:123@tcp(localhost:3306)/easy_bank?parseTime=true"
 )
 
-var testQueries *Queries
+var (
+	testQueries *Queries
+	testDB      *sql.DB
+)
 
 func TestMain(m *testing.M) {
-	db, err := sql.Open(dbDriverName, dbSourceName)
+	var err error
+	testDB, err = sql.Open(dbDriverName, dbSourceName)
 	if err != nil {
 		log.Fatal("Can't open th db : ", err)
 	}
-	testQueries = New(db)
+	testQueries = New(testDB)
 
 	os.Exit(m.Run())
 }
