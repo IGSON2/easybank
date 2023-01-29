@@ -61,6 +61,8 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
+var txKey = struct{}{}
+
 // TransferTx perfroms a money transfer from one account to the other.
 // It creates the transfer, add account entries, and update account's balance within a database transaction
 func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
@@ -71,6 +73,9 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 		var createErr error
 		var id int64
 		var creatResult sql.Result
+
+		txName := ctx.Value(txKey)
+		fmt.Println(txName, "create transfer")
 
 		// Transfer
 		creatResult, createErr = q.CreateTransfer(ctx, CreateTransferParams{
@@ -90,6 +95,7 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			return fmt.Errorf("can't get transfer by id. err : %v", createErr)
 		}
 
+		fmt.Println(txName, "create entry 1")
 		// FromEntry
 		creatResult, createErr = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
@@ -107,6 +113,7 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			return fmt.Errorf("can't get from entry by id. err : %v", createErr)
 		}
 
+		fmt.Println(txName, "create entry 2")
 		// ToEntry
 		creatResult, createErr = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
@@ -124,32 +131,35 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			return fmt.Errorf("can't get to entry by id. err : %v", createErr)
 		}
 
-		// FromAccount
-		_, createErr = q.AddAccountBalance(ctx, AddAccountBalanceParams{
-			ID:     arg.FromAccountID,
-			Amount: -arg.Amount,
+		fmt.Println(txName, "get account 1")
+		account1, getAcntErr := q.GetAccount(ctx, arg.FromAccountID)
+		if getAcntErr != nil {
+			return fmt.Errorf("can't get to from_account by id. err : %v", getAcntErr)
+		}
+
+		fmt.Println(txName, "update account1")
+		var updateErr error
+		_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:      arg.FromAccountID,
+			Balance: account1.Balance - arg.Amount,
 		})
-		if createErr != nil {
-			return fmt.Errorf("can't create from_account. err : %v", createErr)
+		if updateErr != nil {
+			return fmt.Errorf("can't update account1. err : %v", updateErr)
 		}
 
-		result.FromAccount, createErr = q.GetAccount(ctx, arg.FromAccountID)
-		if createErr != nil {
-			return fmt.Errorf("can't get to from_account by id. err : %v", createErr)
+		fmt.Println(txName, "get account 2")
+		account2, getAcntErr := q.GetAccount(ctx, arg.ToAccountID)
+		if getAcntErr != nil {
+			return fmt.Errorf("can't get to to_account by id. err : %v", getAcntErr)
 		}
 
-		// ToAccount
-		creatResult, createErr = q.AddAccountBalance(ctx, AddAccountBalanceParams{
-			ID:     arg.ToAccountID,
-			Amount: arg.Amount,
+		fmt.Println(txName, "update account2")
+		_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:      arg.ToAccountID,
+			Balance: account2.Balance + arg.Amount,
 		})
-		if createErr != nil {
-			return fmt.Errorf("can't create to_account. err : %v", createErr)
-		}
-
-		result.ToAccount, createErr = q.GetAccount(ctx, arg.ToAccountID)
-		if createErr != nil {
-			return fmt.Errorf("can't get to to_account by id. err : %v", createErr)
+		if updateErr != nil {
+			return fmt.Errorf("can't update account2. err : %v", updateErr)
 		}
 
 		return createErr
