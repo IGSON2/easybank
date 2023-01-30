@@ -137,29 +137,51 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			return fmt.Errorf("can't get to from_account by id. err : %v", getAcntErr)
 		}
 
-		fmt.Println(txName, "update account1")
-		var updateErr error
-		_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
-			ID:      arg.FromAccountID,
-			Balance: account1.Balance - arg.Amount,
-		})
-		if updateErr != nil {
-			return fmt.Errorf("can't update account1. err : %v", updateErr)
-		}
-
 		fmt.Println(txName, "get account 2")
 		account2, getAcntErr := q.GetAccount(ctx, arg.ToAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to to_account by id. err : %v", getAcntErr)
 		}
 
-		fmt.Println(txName, "update account2")
-		_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
-			ID:      arg.ToAccountID,
-			Balance: account2.Balance + arg.Amount,
-		})
-		if updateErr != nil {
-			return fmt.Errorf("can't update account2. err : %v", updateErr)
+		if arg.FromAccountID < arg.ToAccountID {
+
+			fmt.Println(txName, "update account1")
+			var updateErr error
+			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
+				ID:      arg.FromAccountID,
+				Balance: account1.Balance - arg.Amount,
+			})
+			if updateErr != nil {
+				return fmt.Errorf("can't update account1. err : %v", updateErr)
+			}
+
+			fmt.Println(txName, "update account2")
+			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
+				ID:      arg.ToAccountID,
+				Balance: account2.Balance + arg.Amount,
+			})
+			if updateErr != nil {
+				return fmt.Errorf("can't update account2. err : %v", updateErr)
+			}
+		} else {
+			var updateErr error
+			fmt.Println(txName, "update account2")
+			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
+				ID:      arg.ToAccountID,
+				Balance: account2.Balance + arg.Amount,
+			})
+			if updateErr != nil {
+				return fmt.Errorf("can't update account2. err : %v", updateErr)
+			}
+
+			fmt.Println(txName, "update account1")
+			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
+				ID:      arg.FromAccountID,
+				Balance: account1.Balance - arg.Amount,
+			})
+			if updateErr != nil {
+				return fmt.Errorf("can't update account1. err : %v", updateErr)
+			}
 		}
 
 		return createErr
