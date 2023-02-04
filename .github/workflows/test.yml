@@ -12,6 +12,15 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_USER: root
+          MYSQL_ROOT_PASSWORD: ${{secrets.ROOTPASSWORD}}
+          MYSQL_DATABASE: easy_bank
+        ports: 3306:3306
+
     steps:
 
     - name: Set up Go 1.x
@@ -29,11 +38,6 @@ jobs:
         sudo mv migrate.linux-amd64 /usr/bin/migrate
         which migrate
 
-    - uses: mirromutth/mysql-action@v1.1
-      with:
-        mysql database: 'easy_bank' # Optional, default value is "test". The specified database which will be create
-        mysql root password: ${{ secrets.RootPassword }} # Required if "mysql user" is empty, default is empty. The root superuser password
-        
     - name: Run migrations
       run: make migrateup
 
