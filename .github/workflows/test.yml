@@ -28,6 +28,12 @@ jobs:
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
         sudo mv migrate.linux-amd64 /usr/bin/migrate
         which migrate
+
+    - uses: mirromutth/mysql-action@v1.1
+      with:
+        mysql database: 'easy_bank' # Optional, default value is "test". The specified database which will be create
+        mysql root password: ${{ secrets.RootPassword }} # Required if "mysql user" is empty, default is empty. The root superuser password
+        
     - name: Run migrations
       run: make migrateup
 
