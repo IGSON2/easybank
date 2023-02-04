@@ -1,4 +1,4 @@
-name: ci-test
+name: test when commit
 
 on:
   push:
@@ -7,9 +7,11 @@ on:
     branches: [master]
 
 jobs:
+
   test:
     name: Test
     runs-on: ubuntu-latest
+
     steps:
 
     - name: Set up Go 1.x
@@ -28,6 +30,6 @@ jobs:
         which migrate
     - name: Run migrations
       run: make migrateup
-      
+
     - name: Test
       run: make test
