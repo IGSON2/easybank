@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"easybank/util"
+	"fmt"
 	"testing"
 	"time"
 
@@ -32,6 +33,27 @@ func createRandomAccount(t *testing.T) Account {
 
 	require.NotZero(t, account.ID)
 	require.NotZero(t, account.CreatedAt)
+
+	return account
+}
+
+func getRandomAccount(t *testing.T) Account {
+	arg := CreateAccountParams{
+		Owner:    util.RandomOwner(),
+		Balance:  util.RandomBalance(),
+		Currency: util.RandomCurrency(),
+	}
+	result, err := testQueries.CreateAccount(context.Background(), arg)
+	require.NotEmpty(t, result)
+	require.NoError(t, err)
+
+	lastID, err := result.LastInsertId()
+	require.NoError(t, err)
+
+	ranNum := util.RandomInt(1, lastID-1)
+
+	account, err := testQueries.GetAccount(context.Background(), ranNum)
+	require.NoError(t, err, fmt.Sprintf("Get random account Error. ID : %d", ranNum))
 
 	return account
 }

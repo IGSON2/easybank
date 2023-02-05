@@ -132,13 +132,13 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 		}
 
 		fmt.Println(txName, "get account 1")
-		account1, getAcntErr := q.GetAccount(ctx, arg.FromAccountID)
+		fromAcnt, getAcntErr := q.GetAccount(ctx, arg.FromAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to from_account by id. err : %v", getAcntErr)
 		}
 
 		fmt.Println(txName, "get account 2")
-		account2, getAcntErr := q.GetAccount(ctx, arg.ToAccountID)
+		toAcnt, getAcntErr := q.GetAccount(ctx, arg.ToAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to to_account by id. err : %v", getAcntErr)
 		}
@@ -149,7 +149,7 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			var updateErr error
 			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
 				ID:      arg.FromAccountID,
-				Balance: account1.Balance - arg.Amount,
+				Balance: fromAcnt.Balance - arg.Amount,
 			})
 			if updateErr != nil {
 				return fmt.Errorf("can't update account1. err : %v", updateErr)
@@ -158,7 +158,7 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			fmt.Println(txName, "update account2")
 			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
 				ID:      arg.ToAccountID,
-				Balance: account2.Balance + arg.Amount,
+				Balance: toAcnt.Balance + arg.Amount,
 			})
 			if updateErr != nil {
 				return fmt.Errorf("can't update account2. err : %v", updateErr)
@@ -168,7 +168,7 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			fmt.Println(txName, "update account2")
 			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
 				ID:      arg.ToAccountID,
-				Balance: account2.Balance + arg.Amount,
+				Balance: toAcnt.Balance + arg.Amount,
 			})
 			if updateErr != nil {
 				return fmt.Errorf("can't update account2. err : %v", updateErr)
@@ -177,11 +177,21 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferT
 			fmt.Println(txName, "update account1")
 			_, updateErr = q.UpdateAccount(ctx, UpdateAccountParams{
 				ID:      arg.FromAccountID,
-				Balance: account1.Balance - arg.Amount,
+				Balance: fromAcnt.Balance - arg.Amount,
 			})
 			if updateErr != nil {
 				return fmt.Errorf("can't update account1. err : %v", updateErr)
 			}
+		}
+
+		result.FromAccount, getAcntErr = q.GetAccount(ctx, arg.FromAccountID)
+		if getAcntErr != nil {
+			return fmt.Errorf("can't get to from_account by id. err : %v", getAcntErr)
+		}
+
+		result.ToAccount, getAcntErr = q.GetAccount(ctx, arg.ToAccountID)
+		if getAcntErr != nil {
+			return fmt.Errorf("can't get to to_account by id. err : %v", getAcntErr)
 		}
 
 		return createErr
