@@ -22,4 +22,7 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: mysql exec createdb dropdb migrateup migratedown sqlc test
+server:
+	go run main.go
+
+.PHONY: mysql exec createdb dropdb migrateup migratedown sqlc test server
