@@ -25,4 +25,7 @@ test:
 server:
 	go run main.go
 
-.PHONY: mysql exec createdb dropdb migrateup migratedown sqlc test server
+mock:
+	mockgen -package mockdb -destination db/mock/store.go easybank/db/sqlc Store
+
+.PHONY: mysql exec createdb dropdb migrateup migratedown sqlc test server mock

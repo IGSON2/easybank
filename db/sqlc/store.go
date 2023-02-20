@@ -8,23 +8,28 @@ import (
 
 type runTx func(*Queries) error
 
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
 // [Composer]
-// Store provides all functions to execute db queries and transaction
-type Store struct {
+// SqlStore provides all functions to execute db queries and transaction
+type SqlStore struct {
 	*Queries
 	db *sql.DB
 }
 
 // NewStore creates a new store
 func NewStore(db *sql.DB) Store {
-	return Store{
+	return &SqlStore{
 		Queries: New(db),
 		db:      db,
 	}
 }
 
 // ExecTx executes a function within a database transaction
-func (s *Store) execTx(ctx context.Context, fn runTx) error {
+func (s *SqlStore) execTx(ctx context.Context, fn runTx) error {
 	// BeginTx 의 option 인자로 격리 레벨을 조정할 수 있다.
 	Tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -65,7 +70,7 @@ var txKey = struct{}{}
 
 // TransferTx perfroms a money transfer from one account to the other.
 // It creates the transfer, add account entries, and update account's balance within a database transaction
-func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (s *SqlStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	// [Closer]
 	var result TransferTxResult
 
