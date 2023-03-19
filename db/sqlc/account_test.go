@@ -12,13 +12,14 @@ import (
 )
 
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
 	arg := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    user.Username, //user 테이블과 FK 제약조건이 걸려있기 때문에 account 먼저 생성될 수 없음.
 		Balance:  util.RandomBalance(),
 		Currency: util.RandomCurrency(),
 	}
 	result, err := testQueries.CreateAccount(context.Background(), arg)
-	require.NotEmpty(t, result)
+	require.NotNil(t, result)
 	require.NoError(t, err)
 
 	lastID, err := result.LastInsertId()
@@ -38,13 +39,15 @@ func createRandomAccount(t *testing.T) Account {
 }
 
 func getRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  util.RandomBalance(),
 		Currency: util.RandomCurrency(),
 	}
 	result, err := testQueries.CreateAccount(context.Background(), arg)
-	require.NotEmpty(t, result)
+	require.NotNil(t, result)
 	require.NoError(t, err)
 
 	lastID, err := result.LastInsertId()

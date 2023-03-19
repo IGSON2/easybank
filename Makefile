@@ -16,6 +16,12 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "mysql://root:123@tcp(localhost:3306)/easy_bank" -verbose down
 
+migrateup1:
+	migrate -path db/migration -database "mysql://root:123@tcp(localhost:3306)/easy_bank" -verbose up 1
+
+migratedown1:
+	migrate -path db/migration -database "mysql://root:123@tcp(localhost:3306)/easy_bank" -verbose down 1
+
 sqlc:
 	sqlc generate
 
@@ -28,4 +34,4 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go easybank/db/sqlc Store
 
-.PHONY: mysql exec createdb dropdb migrateup migratedown sqlc test server mock
+.PHONY: mysql exec createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock

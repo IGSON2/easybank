@@ -2,16 +2,12 @@ package db
 
 import (
 	"database/sql"
+	"easybank/util"
 	"log"
 	"os"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
-)
-
-const (
-	dbDriverName = "mysql"
-	dbSourceName = "root:123@tcp(localhost:3306)/easy_bank?parseTime=true"
 )
 
 var (
@@ -20,8 +16,10 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	util.LoadConfig("../../.")
 	var err error
-	testDB, err = sql.Open(dbDriverName, dbSourceName)
+
+	testDB, err = sql.Open(util.C.DBDriver, util.C.DBsource)
 	if err != nil {
 		log.Fatal("Can't open th db : ", err)
 	}

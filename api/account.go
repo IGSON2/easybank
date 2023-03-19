@@ -15,7 +15,7 @@ type errorResponse struct {
 }
 
 func (s *Server) createAccount(c *fiber.Ctx) error {
-	var req createAccountRequest
+	var req = createAccountRequest{}
 	if err := c.BodyParser(&req); err != nil {
 		return fmt.Errorf("cannot parse request body. err : %v", err)
 	}
@@ -30,13 +30,10 @@ func (s *Server) createAccount(c *fiber.Ctx) error {
 	}
 	result, err := s.store.CreateAccount(c.Context(), arg)
 	if err != nil {
-		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(errorResponse{err})
 	}
 	lastID, err := result.LastInsertId()
 	if err != nil {
-		fmt.Println(err)
-
 		return c.Status(fiber.StatusInternalServerError).JSON(errorResponse{err})
 	}
 	return c.Status(fiber.StatusOK).JSON(lastID)
