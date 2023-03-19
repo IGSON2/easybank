@@ -1,12 +1,15 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
 )
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+var Currencies = []string{"USD", "KRW", "EUR", "JAP", "BTC", "ETH"}
 
 func init() {
 	rand.Seed(time.Now().UnixMicro())
@@ -50,6 +53,10 @@ func RandomBalance() int64 {
 
 // RandomCurrency generates a random currency code
 func RandomCurrency() string {
-	currencyCodes := []string{"USD", "KRW", "EUR", "JAP", "BTC", "ETH"}
+	currencyCodes := Currencies
 	return currencyCodes[rand.Intn(len(currencyCodes))]
+}
+
+func RandomEmail() string {
+	return fmt.Sprintf("%s@email.com", RandomString(6))
 }

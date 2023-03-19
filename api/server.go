@@ -19,9 +19,11 @@ func NewServer(store db.Store) *Server {
 	router.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
 	}))
-	router.Post("/", server.createAccount)
-	router.Get("/accounts/:id", server.getAccount)
-	router.Get("/accounts", server.listAccount)
+	router.Post("/account", server.createAccount)
+	router.Get("/account/:id", server.getAccount)
+	router.Get("/account", server.listAccount)
+	router.Post("/transfer", server.createTransfer)
+	router.Post("/user", server.createUser)
 	server.router = router
 	return server
 }
