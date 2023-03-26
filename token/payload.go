@@ -7,8 +7,11 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrExpiredToken = fmt.Errorf("token is expired")
-var ErrInvalidToken = fmt.Errorf("token is invalid")
+var (
+	ErrExpiredToken     = fmt.Errorf("token is expired")
+	ErrInvalidToken     = fmt.Errorf("token is invalid")
+	ErrorInvalidKeySize = fmt.Errorf("invalid key size : must be at least %d characters", minSecretKeySize)
+)
 
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
@@ -32,7 +35,7 @@ func NewPayload(username string, duration time.Duration) (*Payload, error) {
 	return payload, nil
 }
 
-func (p *Payload) Validate() error {
+func (p *Payload) Valid() error {
 	if time.Now().After(p.ExpiredAt) {
 		return ErrExpiredToken
 	}
