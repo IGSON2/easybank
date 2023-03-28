@@ -54,7 +54,7 @@ func TestGetAccount(t *testing.T) {
 			store := mockdb.NewMockStore(ctrler)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			// recoder := httptest.NewRecorder() // 테스트를 위해 실제로 http 서버를 실행할 필요가 없도록 도와주는 recoder 생성
 
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)

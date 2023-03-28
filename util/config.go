@@ -2,14 +2,17 @@ package util
 
 import (
 	"log"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	DBDriver string `mapstructure:"DB_Driver"`
-	DBsource string `mapstructure:"DB_SOURCE"`
-	Port     string `mapstructure:"PORT"`
+	DBDriver            string        `mapstructure:"DB_Driver"`
+	DBsource            string        `mapstructure:"DB_SOURCE"`
+	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	Port                string        `mapstructure:"PORT"`
 }
 
 var C *Config

@@ -57,7 +57,7 @@ func (t *transferRequest) ValidateValues() error {
 	}
 
 	if t.Amount <= 0 {
-		return fmt.Errorf("Amount must be higher than 0")
+		return fmt.Errorf("amount must be higher than 0")
 	}
 
 	var contain bool
@@ -67,7 +67,7 @@ func (t *transferRequest) ValidateValues() error {
 		}
 	}
 	if !contain {
-		return fmt.Errorf("Invalid currency type")
+		return fmt.Errorf("invalid currency type")
 	}
 
 	return nil

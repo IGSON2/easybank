@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	db "easybank/db/sqlc"
 	"easybank/util"
 	"net/http"
@@ -17,12 +18,22 @@ type createUserRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 }
 
-type createUserResponse struct {
+type userResponse struct {
 	Username          string    `json:"username"`
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
+}
+
+func newUserResponse(user db.User) userResponse {
+	return userResponse{
+		Username:          user.Username,
+		FullName:          user.FullName,
+		Email:             user.Email,
+		PasswordChangedAt: user.PasswordChangedAt,
+		CreatedAt:         user.CreatedAt,
+	}
 }
 
 func (s *Server) createUser(ctx *fiber.Ctx) error {
@@ -34,9 +45,9 @@ func (s *Server) createUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	errors := util.ValidateStruct(req)
-	if errors != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(errors)
+	errs := util.ValidateStruct(req)
+	if errs != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(errs)
 	}
 
 	hashedPassword, err := util.HashPassword(req.Password)
@@ -70,13 +81,58 @@ func (s *Server) createUser(ctx *fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError).JSON(err)
 		return err
 	}
-	rsp := createUserResponse{
-		Username:          user.Username,
-		FullName:          user.FullName,
-		Email:             user.Email,
-		PasswordChangedAt: user.PasswordChangedAt,
-		CreatedAt:         user.CreatedAt,
-	}
+	rsp := newUserResponse(user)
 	ctx.Status(http.StatusOK).JSON(rsp)
 	return nil
+}
+
+type loginUserRequest struct {
+	Username string `json:"" validate:"required,alphanum"`
+	Password string `json:"" validate:"required,min=6"`
+}
+
+type loginUserResponse struct {
+	AccessToken string       `json:"access_token"`
+	User        userResponse `json:"user"`
+}
+
+func (s *Server) loginUser(ctx *fiber.Ctx) error {
+	var req loginUserRequest
+
+	err := ctx.BodyParser(&req)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError).JSON(err)
+		return err
+	}
+
+	errs := util.ValidateStruct(req)
+	if errs != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(errs)
+	}
+
+	user, err := s.store.GetUser(ctx.Context(), req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return ctx.Status(fiber.StatusNotFound).JSON(errorResponse{err})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(errorResponse{err})
+	}
+
+	err = util.CheckPassword(req.Password, user.HashedPassword)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(errorResponse{err})
+	}
+
+	// [TODO]
+	// To use payload
+	accessToken, _, err := s.tokenMaker.CreateToken(req.Username, s.config.AccessTokenDuration)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(errorResponse{err})
+	}
+
+	rsp := loginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
+	}
+	return ctx.Status(http.StatusOK).JSON(rsp)
 }
