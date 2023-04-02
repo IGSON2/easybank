@@ -87,8 +87,8 @@ func (s *Server) createUser(ctx *fiber.Ctx) error {
 }
 
 type loginUserRequest struct {
-	Username string `json:"" validate:"required,alphanum"`
-	Password string `json:"" validate:"required,min=6"`
+	Username string `json:"username" validate:"required,alphanum"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 type loginUserResponse struct {

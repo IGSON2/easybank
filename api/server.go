@@ -32,12 +32,15 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 	router.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
 	}))
-	router.Post("/account", server.createAccount)
-	router.Get("/account", server.listAccount)
-	router.Get("/account/:id", server.getAccount)
-	router.Post("/transfer", server.createTransfer)
 	router.Post("/user", server.createUser)
 	router.Post("/user/login", server.loginUser)
+
+	authGroup := router.Group("/", authMiddleware(server.tokenMaker))
+	authGroup.Post("/account", server.createAccount)
+	authGroup.Get("/account", server.listAccount)
+	authGroup.Get("/account/:id", server.getAccount)
+	authGroup.Post("/transfer", server.createTransfer)
+
 	server.router = router
 	return server, nil
 }

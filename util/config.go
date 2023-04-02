@@ -11,7 +11,7 @@ type Config struct {
 	DBDriver            string        `mapstructure:"DB_Driver"`
 	DBsource            string        `mapstructure:"DB_SOURCE"`
 	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
-	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"` // viper 패키지 내부에서 time.ParseDuration을 이용해 분석된다.
 	Port                string        `mapstructure:"PORT"`
 }
 
