@@ -74,7 +74,7 @@ func TestGetAccount(t *testing.T) {
 }
 
 func TestCreateAccount(t *testing.T) {
-	user := creatrandomuser()
+	user, password := randomUser(t)
 
 	testcases := []struct {
 		name           string
