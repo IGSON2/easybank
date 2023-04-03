@@ -20,8 +20,7 @@ func (s *Server) createAccount(c *fiber.Ctx) error {
 		return fmt.Errorf("cannot parse request body. err : %v", err)
 	}
 	if err := req.ValidateValues(); err != nil {
-		c.Status(fiber.StatusBadRequest).SendString("Bad Request")
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponse{fmt.Errorf("bad Request %w", err)})
 	}
 	arg := db.CreateAccountParams{
 		Owner:    req.Owner,

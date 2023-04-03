@@ -11,14 +11,15 @@ import (
 )
 
 const createUser = `-- name: CreateUser :execresult
-INSERT INTO users (
-    username,
-    hashed_password,
-    full_name,
-    email
-) VALUES (
-    ?,?,?,?
-)
+INSERT INTO
+    users (
+        username,
+        hashed_password,
+        full_name,
+        email
+    )
+VALUES
+    (?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
@@ -37,9 +38,40 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 	)
 }
 
+const getLastUser = `-- name: GetLastUser :one
+SELECT
+    username, hashed_password, full_name, email, password_changed_at, created_at
+FROM
+    users
+ORDER BY
+    created_at DESC
+LIMIT
+    1
+`
+
+func (q *Queries) GetLastUser(ctx context.Context) (User, error) {
+	row := q.db.QueryRowContext(ctx, getLastUser)
+	var i User
+	err := row.Scan(
+		&i.Username,
+		&i.HashedPassword,
+		&i.FullName,
+		&i.Email,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
-SELECT username, hashed_password, full_name, email, password_changed_at, created_at FROM users
-WHERE username = ? LIMIT 1
+SELECT
+    username, hashed_password, full_name, email, password_changed_at, created_at
+FROM
+    users
+WHERE
+    username = ?
+LIMIT
+    1
 `
 
 func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
