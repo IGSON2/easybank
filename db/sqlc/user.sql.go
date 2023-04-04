@@ -64,7 +64,7 @@ func (q *Queries) GetLastUser(ctx context.Context) (User, error) {
 }
 
 const getRandomUser = `-- name: GetRandomUser :one
-SELECT 
+SELECT
     username, hashed_password, full_name, email, password_changed_at, created_at
 FROM
     users

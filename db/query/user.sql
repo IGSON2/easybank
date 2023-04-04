@@ -20,7 +20,7 @@ LIMIT
     1;
 
 -- name: GetRandomUser :one
-SELECT 
+SELECT
     *
 FROM
     users
