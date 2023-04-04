@@ -19,6 +19,16 @@ WHERE
 LIMIT
     1;
 
+-- name: GetRandomUser :one
+SELECT 
+    *
+FROM
+    users
+ORDER BY
+    RAND()
+LIMIT
+    1;
+
 -- name: GetLastUser :one
 SELECT
     *

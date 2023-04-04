@@ -9,7 +9,15 @@ INSERT INTO accounts (
 
 -- name: GetAccount :one
 SELECT * FROM accounts
-WHERE id = ? LIMIT 1;
+WHERE owner = ? AND currency = ?;
+
+-- name: GetAccountByID :one
+SELECT * FROM accounts
+WHERE id=?;
+
+-- name: GetCurrency :many
+SELECT currency FROM accounts
+WHERE owner = ?;
 
 -- name: GetAccountForUpdate :one
 SELECT * FROM accounts

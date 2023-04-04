@@ -76,12 +76,11 @@ func (s *Server) createUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	user, err := s.store.GetUser(ctx.Context(), arg.Username)
-	if err != nil {
-		ctx.Status(http.StatusInternalServerError).JSON(err)
-		return err
-	}
-	rsp := newUserResponse(user)
+	rsp := newUserResponse(db.User{
+		Username: arg.Username,
+		FullName: arg.FullName,
+		Email:    arg.Email,
+	})
 	ctx.Status(http.StatusOK).JSON(rsp)
 	return nil
 }

@@ -137,13 +137,13 @@ func (s *SqlStore) TransferTx(ctx context.Context, arg TransferTxParams) (Transf
 		}
 
 		fmt.Println(txName, "get account 1")
-		fromAcnt, getAcntErr := q.GetAccount(ctx, arg.FromAccountID)
+		fromAcnt, getAcntErr := q.GetAccountByID(ctx, arg.FromAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to from_account by id. err : %v", getAcntErr)
 		}
 
 		fmt.Println(txName, "get account 2")
-		toAcnt, getAcntErr := q.GetAccount(ctx, arg.ToAccountID)
+		toAcnt, getAcntErr := q.GetAccountByID(ctx, arg.ToAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to to_account by id. err : %v", getAcntErr)
 		}
@@ -189,12 +189,12 @@ func (s *SqlStore) TransferTx(ctx context.Context, arg TransferTxParams) (Transf
 			}
 		}
 
-		result.FromAccount, getAcntErr = q.GetAccount(ctx, arg.FromAccountID)
+		result.FromAccount, getAcntErr = q.GetAccountByID(ctx, arg.FromAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to from_account by id. err : %v", getAcntErr)
 		}
 
-		result.ToAccount, getAcntErr = q.GetAccount(ctx, arg.ToAccountID)
+		result.ToAccount, getAcntErr = q.GetAccountByID(ctx, arg.ToAccountID)
 		if getAcntErr != nil {
 			return fmt.Errorf("can't get to to_account by id. err : %v", getAcntErr)
 		}

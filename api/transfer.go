@@ -9,7 +9,7 @@ import (
 )
 
 func (server *Server) goodAccountCurrency(c *fiber.Ctx, accountID int64, currency string) error {
-	account, err := server.store.GetAccount(c.Context(), accountID)
+	account, err := server.store.GetAccountByID(c.Context(), accountID)
 	if err != nil {
 		c.Status(http.StatusInternalServerError).JSON(errorResponse{err})
 		return err

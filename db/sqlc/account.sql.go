@@ -57,11 +57,34 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 
 const getAccount = `-- name: GetAccount :one
 SELECT id, owner, balance, currency, created_at FROM accounts
-WHERE id = ? LIMIT 1
+WHERE owner = ? AND currency = ?
 `
 
-func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
-	row := q.db.QueryRowContext(ctx, getAccount, id)
+type GetAccountParams struct {
+	Owner    string `json:"owner"`
+	Currency string `json:"currency"`
+}
+
+func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, getAccount, arg.Owner, arg.Currency)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getAccountByID = `-- name: GetAccountByID :one
+SELECT id, owner, balance, currency, created_at FROM accounts
+WHERE id=?
+`
+
+func (q *Queries) GetAccountByID(ctx context.Context, id int64) (Account, error) {
+	row := q.db.QueryRowContext(ctx, getAccountByID, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,
@@ -90,6 +113,34 @@ func (q *Queries) GetAccountForUpdate(ctx context.Context) (Account, error) {
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getCurrency = `-- name: GetCurrency :many
+SELECT currency FROM accounts
+WHERE owner = ?
+`
+
+func (q *Queries) GetCurrency(ctx context.Context, owner string) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getCurrency, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var currency string
+		if err := rows.Scan(&currency); err != nil {
+			return nil, err
+		}
+		items = append(items, currency)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAccounts = `-- name: ListAccounts :many

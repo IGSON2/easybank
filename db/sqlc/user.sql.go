@@ -63,6 +63,31 @@ func (q *Queries) GetLastUser(ctx context.Context) (User, error) {
 	return i, err
 }
 
+const getRandomUser = `-- name: GetRandomUser :one
+SELECT 
+    username, hashed_password, full_name, email, password_changed_at, created_at
+FROM
+    users
+ORDER BY
+    RAND()
+LIMIT
+    1
+`
+
+func (q *Queries) GetRandomUser(ctx context.Context) (User, error) {
+	row := q.db.QueryRowContext(ctx, getRandomUser)
+	var i User
+	err := row.Scan(
+		&i.Username,
+		&i.HashedPassword,
+		&i.FullName,
+		&i.Email,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT
     username, hashed_password, full_name, email, password_changed_at, created_at

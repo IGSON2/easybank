@@ -7,9 +7,17 @@ import (
 	"time"
 )
 
-const alphabet = "abcdefghijklmnopqrstuvwxyz"
+const (
+	alphabet = "abcdefghijklmnopqrstuvwxyz"
+	USD      = "USD"
+	KRW      = "KRW"
+	EUR      = "EUR"
+	JAP      = "JAP"
+	BTC      = "BTC"
+	ETH      = "ETH"
+)
 
-var Currencies = []string{"USD", "KRW", "EUR", "JAP", "BTC", "ETH"}
+var Currencies = []string{USD, KRW, EUR, JAP, BTC, ETH}
 
 func init() {
 	rand.Seed(time.Now().UnixMicro())
@@ -52,9 +60,19 @@ func RandomBalance() int64 {
 }
 
 // RandomCurrency generates a random currency code
-func RandomCurrency() string {
-	currencyCodes := Currencies
-	return currencyCodes[rand.Intn(len(currencyCodes))]
+func RandomCurrency(exist []string) string {
+	var newCur string
+	if len(exist) == 0 {
+		newCur = Currencies[rand.Intn(len(Currencies))]
+	}
+	for _, e := range exist {
+		ranCur := Currencies[rand.Intn(len(Currencies))]
+		if e == ranCur {
+			continue
+		}
+		newCur = ranCur
+	}
+	return newCur
 }
 
 func RandomEmail() string {

@@ -142,7 +142,7 @@ func TestCreateAccount(t *testing.T) {
 
 			url := "/account"
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data)) // bytes.Reader로써 전달
-			request.Header.Set("content-type", fiber.MIMEApplicationJSON)
+			request.Header.Set("content-type", "application/json")
 			require.NoError(t, err)
 
 			tc.setupAuth(t, request, server.tokenMaker)
@@ -158,6 +158,6 @@ func randomAccount(owner string) db.Account {
 		ID:       util.RandomInt(1, 1000),
 		Owner:    owner,
 		Balance:  util.RandomBalance(),
-		Currency: util.RandomCurrency(),
+		Currency: util.RandomCurrency([]string{}),
 	}
 }

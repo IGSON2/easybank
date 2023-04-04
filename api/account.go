@@ -46,7 +46,7 @@ func (s *Server) getAccount(c *fiber.Ctx) error {
 	if id <= 0 {
 		return fmt.Errorf("id must be higher than 1")
 	}
-	account, err := s.store.GetAccount(c.Context(), int64(id))
+	account, err := s.store.GetAccountByID(c.Context(), int64(id))
 
 	if err != nil {
 		if err == sql.ErrNoRows {

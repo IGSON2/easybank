@@ -77,7 +77,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": rUser.FullName,
 				"email":     rUser.Email,
 			},
-			buildStubs: func(store *mockdb.MockStore) {
+			buildStubs: func(store *mockdb.MockStore) { // Store가 실행할 메소드와 전달될 파라미터 타입, 반환 타입, 실행 횟수 등을 미리 지정한다
 				arg := db.CreateUserParams{
 					Username: rUser.Username,
 					FullName: rUser.FullName,
@@ -85,14 +85,36 @@ func TestCreateUser(t *testing.T) {
 				}
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
-					Times(1).
-					Return(rUser, nil)
+					Times(1)
 			},
 			checkResponse: func(res *http.Response) {
-				require.Equal(t, res.StatusCode, http.StatusOK)
+				require.Equal(t, http.StatusOK, res.StatusCode)
 				requireBodyMatcher(t, res.Body, rUser)
 			},
 		},
+		// {
+		// 	name: "InternalError",
+		// 	body: fiber.Map{
+		// 		"username":  rUser.Username,
+		// 		"password":  password,
+		// 		"full_name": rUser.FullName,
+		// 		"email":     rUser.Email,
+		// 	},
+		// 	buildStubs: func(store *mockdb.MockStore) { // Store가 실행할 메소드와 전달될 파라미터 타입, 반환 타입, 실행 횟수 등을 미리 지정한다
+		// 		arg := db.CreateUserParams{
+		// 			Username: rUser.Username,
+		// 			FullName: rUser.FullName,
+		// 			Email:    rUser.Email,
+		// 		}
+		// 		store.EXPECT().
+		// 			CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
+		// 			Times(1)
+		// 	},
+		// 	checkResponse: func(res *http.Response) {
+		// 		require.Equal(t, http.StatusOK, res.StatusCode)
+		// 		requireBodyMatcher(t, res.Body, rUser)
+		// 	},
+		// },
 	}
 
 	for _, tc := range testcase {
@@ -111,6 +133,7 @@ func TestCreateUser(t *testing.T) {
 			url := "/user"
 			request, err := http.NewRequest(fiber.MethodPost, url, bytes.NewReader(data)) // newBuffer와, newReader의 차이는 무엇인가?
 			require.NoError(t, err)
+			request.Header.Set("content-type", "application/json")
 
 			res, err := testServer.router.Test(request)
 			require.NoError(t, err)
