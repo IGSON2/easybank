@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	db "easybank/db/sqlc"
 	"easybank/util"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -119,7 +120,7 @@ func (s *Server) loginUser(ctx *fiber.Ctx) error {
 
 	err = util.CheckPassword(req.Password, user.HashedPassword)
 	if err != nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(errorResponse{err})
+		return ctx.Status(fiber.StatusUnauthorized).JSON(errorResponse{fmt.Errorf("password is not correct err : %v", err)})
 	}
 
 	// [TODO]

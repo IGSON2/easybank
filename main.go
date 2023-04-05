@@ -24,5 +24,5 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
-	log.Fatalln(server.Start(util.C.Port))
+	log.Fatalln(server.Start(util.C.Address))
 }

@@ -1,22 +1,39 @@
 package util
 
-import "github.com/go-playground/validator/v10"
+import (
+	"strings"
+	"sync"
 
-var validate = validator.New()
+	"github.com/go-playground/validator/v10"
+)
+
+var (
+	validate = validator.New()
+	once     = new(sync.Once)
+)
+
+func registerCustomValidation() {
+	validate.RegisterValidation("currency", func(fl validator.FieldLevel) bool {
+		combine := strings.Join(Currencies, "")
+		return strings.Contains(combine, fl.Field().String())
+	})
+}
 
 type ErrorResponse struct {
-	FaildField string
-	Tag        string
-	Value      string
+	FailedField string
+	Tag         string
+	Value       string
 }
 
 func ValidateStruct(i interface{}) []*ErrorResponse {
+	once.Do(registerCustomValidation)
+
 	var errors []*ErrorResponse
 	err := validate.Struct(i)
 	if err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
 			var element ErrorResponse
-			element.FaildField = err.StructNamespace()
+			element.FailedField = err.StructNamespace()
 			element.Tag = err.Tag()
 			element.Value = err.Param()
 			errors = append(errors, &element)
