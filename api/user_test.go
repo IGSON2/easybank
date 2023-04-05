@@ -140,9 +140,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestLoginUser(t *testing.T) {
-	owner, password := "ginber", "password"
-	hashed, err := util.HashPassword(password)
-	require.NoError(t, err)
+	owner, _ := "ginber", "password"
 
 	testCases := []struct {
 		name          string
@@ -161,7 +159,7 @@ func TestLoginUser(t *testing.T) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, owner, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetUser(gomock.Any(), gomock.Eq("camkpa")).Times(1).Return(EqCreateUserParams(db.CreateUserParams{owner, hashed}), nil)
+				store.EXPECT().GetUser(gomock.Any(), gomock.Eq("camkpa")).Times(1)
 			},
 			checkResponse: func(resp *http.Response) {
 				require.Equal(t, http.StatusOK, resp.StatusCode)

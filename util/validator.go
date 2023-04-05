@@ -25,7 +25,31 @@ type ErrorResponse struct {
 	Value       string `json:"value"`
 }
 
-func ValidateStruct(i interface{}) []*ErrorResponse {
+type ErrorResponses []*ErrorResponse
+
+func NewErrResponses(r []*ErrorResponse) *ErrorResponses {
+	errs := ErrorResponses(r)
+	return &errs
+}
+
+func (e *ErrorResponses) Error() string {
+	var errorString string
+
+	for _, response := range *e {
+		if response.FailedField != "" {
+			errorString += response.FailedField
+		}
+		if response.Tag != "" {
+			errorString += response.Tag
+		}
+		if response.Value != "" {
+			errorString += response.Value
+		}
+	}
+	return errorString
+}
+
+func ValidateStruct(i interface{}) *ErrorResponses {
 	once.Do(registerCustomValidation)
 
 	var errors []*ErrorResponse
@@ -38,6 +62,7 @@ func ValidateStruct(i interface{}) []*ErrorResponse {
 			element.Value = err.Param()
 			errors = append(errors, &element)
 		}
+		return NewErrResponses(errors)
 	}
-	return errors
+	return nil
 }

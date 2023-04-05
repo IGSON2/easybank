@@ -5,7 +5,6 @@ import (
 	db "easybank/db/sqlc"
 	"easybank/token"
 	"easybank/util"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -27,8 +26,8 @@ func (s *Server) createAccount(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return fmt.Errorf("cannot parse request body. err : %v", err)
 	}
-	if err := util.ValidateStruct(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errorResponse{fmt.Errorf("bad Request %v", err)})
+	if errs := util.ValidateStruct(req); errs != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponse{errs})
 	}
 
 	authPayload, ok := c.Locals(authorizationPayloadKey).(*token.Payload)
@@ -68,7 +67,7 @@ func (s *Server) getAccount(c *fiber.Ctx) error {
 
 	errs := util.ValidateStruct(req)
 	if errs != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errs)
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponse{errs})
 	}
 
 	account, err := s.store.GetAccountByID(c.Context(), int64(req.ID))
@@ -80,18 +79,21 @@ func (s *Server) getAccount(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(errorResponse{err})
 	}
 
-	var payload token.Payload
-	payloadString := c.Get(authorizationPayloadKey)
-	err = json.Unmarshal([]byte(payloadString), &payload)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(errorResponse{err})
+	authPayload, ok := c.Locals(authorizationPayloadKey).(*token.Payload)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(errorResponse{errors.New("invalid payload")})
 	}
 
-	if account.Owner != payload.Username {
+	if account.Owner != authPayload.Username {
 		return c.Status(fiber.StatusUnauthorized).JSON(errorResponse{errors.New("account dosen't belong to the authenticated user")})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(account)
+}
+
+type listAccountRequest struct {
+	PageID   int32 `json:"pageid" validator:"required,min=1"`
+	PageSize int32 `json:"pagesize" validator:"required,min=5,max=10"`
 }
 
 func (s *Server) listAccount(c *fiber.Ctx) error {
@@ -99,15 +101,25 @@ func (s *Server) listAccount(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return fmt.Errorf("cannot parse request body. err : %v", err)
 	}
-	if err := req.ValidateValues(); err != nil {
-		c.Status(fiber.StatusBadRequest).JSON(errorResponse{err})
+
+	errs := util.ValidateStruct(req)
+	if errs != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponse{errs})
 	}
+
+	authPayload, ok := c.Locals(authorizationPayloadKey).(*token.Payload)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(errorResponse{errors.New("invalid payload")})
+	}
+
 	accounts, err := s.store.ListAccounts(c.Context(), db.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(errorResponse{err})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(accounts)
 }
