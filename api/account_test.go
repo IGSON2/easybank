@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	mockdb "easybank/db/mock"
@@ -26,6 +27,7 @@ func TestGetAccount(t *testing.T) {
 	testCases := []struct {
 		name         string
 		accountID    int64
+		setupAuth    func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub    func(store *mockdb.MockStore)
 		expectStatus int
 	}{
@@ -67,7 +69,9 @@ func TestGetAccount(t *testing.T) {
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
+			request.Header.Set("content-type", "application/json")
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			resp, err := server.router.Test(request)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectStatus, resp.StatusCode, tc.name)
@@ -77,7 +81,10 @@ func TestGetAccount(t *testing.T) {
 }
 
 func TestCreateAccount(t *testing.T) {
-	user, _ := randomUser(t)
+	user, password := randomUser(t)
+	hashed, err := util.HashPassword(password)
+	require.NoError(t, err)
+
 	account := randomAccount(user.Username)
 
 	testcases := []struct {
@@ -97,17 +104,24 @@ func TestCreateAccount(t *testing.T) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildstub: func(store *mockdb.MockStore) {
+				userArg := db.CreateUserParams{
+					Username:       user.Username,
+					HashedPassword: hashed,
+					FullName:       user.FullName,
+					Email:          user.Email,
+				}
+				store.EXPECT().CreateUser(gomock.Any(), EqCreateUserParams(userArg, password)).Times(1)
+				_, err := store.CreateUser(context.Background(), userArg)
+				require.NoError(t, err)
 
 				arg := db.CreateAccountParams{
 					Owner:    account.Owner,
 					Balance:  int64(0),
 					Currency: account.Currency,
 				}
-				gomock.InOrder(
-					store.EXPECT().CreateAccount(gomock.Any(), gomock.Eq(arg)).
-						Times(1).
-						Return(new(driver.RowsAffected), sql.ErrNoRows),
-				)
+				store.EXPECT().CreateAccount(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(new(driver.RowsAffected), sql.ErrNoRows)
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -142,8 +156,8 @@ func TestCreateAccount(t *testing.T) {
 
 			url := "/account"
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data)) // bytes.Reader로써 전달
-			request.Header.Set("content-type", "application/json")
 			require.NoError(t, err)
+			request.Header.Set("content-type", "application/json")
 
 			tc.setupAuth(t, request, server.tokenMaker)
 			res, err := server.router.Test(request)

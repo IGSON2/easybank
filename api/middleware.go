@@ -2,7 +2,6 @@ package api
 
 import (
 	"easybank/token"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -43,13 +42,7 @@ func authMiddleware(maker token.Maker) fiber.Handler {
 		if err != nil {
 			return abort(c, fmt.Sprintf("%v", err))
 		}
-
-		payloadData, err := json.Marshal(payload)
-		if err != nil {
-			return abort(c, "cannot marshal payload")
-		}
-		c.Set(authorizationPayloadKey, string(payloadData))
-
+		c.Locals(authorizationPayloadKey, payload)
 		return c.Next()
 	}
 }
