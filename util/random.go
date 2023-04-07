@@ -20,6 +20,8 @@ const (
 var Currencies = []string{USD, KRW, EUR, JAP, BTC, ETH}
 
 func init() {
+	//  r := rand.New(rand.NewSource(seed))
+	//  fmt.Println(r.Uint64())
 	rand.Seed(time.Now().UnixMicro())
 }
 

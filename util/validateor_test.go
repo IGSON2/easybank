@@ -1,8 +1,6 @@
 package util
 
 import (
-	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,20 +14,20 @@ func TestValida(t *testing.T) {
 	testcase := []struct {
 		name         string
 		currency     string
-		validateFunc func(errs []*ErrorResponse) bool
+		validateFunc func(errs *ErrorResponses) bool
 	}{
 		{
 			name:     "Success",
 			currency: "BTC",
-			validateFunc: func(errs []*ErrorResponse) bool {
+			validateFunc: func(errs *ErrorResponses) bool {
 				return errs == nil
 			},
 		},
 		{
 			name:     "Fail",
 			currency: "ADA",
-			validateFunc: func(errs []*ErrorResponse) bool {
-				return errs != nil || len(errs) > 1
+			validateFunc: func(errs *ErrorResponses) bool {
+				return errs != nil || len(*errs) > 1
 			},
 		},
 	}
@@ -43,17 +41,8 @@ func TestValida(t *testing.T) {
 			require.Equal(t, true, passed)
 
 			if errs != nil {
-				err := combineErrors(errs)
-				t.Log(err)
+				t.Log(errs.Error())
 			}
 		})
 	}
-}
-
-func combineErrors(errs []*ErrorResponse) error {
-	var errorString string
-	for i, er := range errs {
-		errorString += fmt.Sprintf("%02d - FailedField:%v, Tag:%v, Value:%v", i+1, er.FailedField, er.Tag, er.Value)
-	}
-	return errors.New(errorString)
 }

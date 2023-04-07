@@ -1,5 +1,5 @@
 mysql:
-	docker run --name db -e MYSQL_ROOT_PASSWORD=123 -p 3306:3306 -d mysql:latest
+	docker run --name db --network bank-network -e MYSQL_ROOT_PASSWORD=123 -e MYSQL_USER=root -p 3306:3306 -d mysql:latest
 
 exec:
 	docker exec -it db bash -c "mysql -u root -p"
