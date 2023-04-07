@@ -1,5 +1,5 @@
 mysql:
-	docker run --name db --network bank-network -e MYSQL_ROOT_PASSWORD=123 -e MYSQL_USER=root -p 3306:3306 -d mysql:latest
+	docker run --network=bank-network --name easybank -p 4000:4000 -e DB_SOURCE="root:123@tcp(db:3306)/easy_bank?parseTime=true" easybank:latest
 
 exec:
 	docker exec -it db bash -c "mysql -u root -p"
