@@ -34,4 +34,7 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go easybank/db/sqlc Store
 
-.PHONY: mysql exec createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock
+dockerdown:
+	docker compose down&&docker rmi easybank_api
+
+.PHONY: mysql exec createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock dockerdown
