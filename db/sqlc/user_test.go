@@ -36,7 +36,7 @@ func TestCreateUser(t *testing.T) {
 	createRandomUser(t)
 }
 
-func TestGetRandomUser(t *testing.T) User {
+func testGetRandomUser(t *testing.T) User {
 	user, err := testQueries.GetRandomUser(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, user)

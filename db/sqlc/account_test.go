@@ -16,19 +16,27 @@ const (
 )
 
 func testCreateAccount(t *testing.T) Account {
-	user := TestGetRandomUser(t)
-	currencies, err := testQueries.GetCurrency(context.Background(), owner)
+	user := testGetRandomUser(t)
+	currencies, err := testQueries.GetCurrency(context.Background(), user.Username)
 	require.NoError(t, err)
+
+	if len(currencies) == len(util.Currencies) {
+		account, err := testQueries.GetAccount(context.Background(), GetAccountParams{
+			Owner:    user.Username,
+			Currency: currencies[util.RandomInt(0, int64(len(currencies)-1))],
+		})
+		require.NoError(t, err)
+		return account
+	}
 
 	arg := CreateAccountParams{
 		Owner:    user.Username, //user 테이블과 FK 제약조건이 걸려있기 때문에 account 먼저 생성될 수 없음.
 		Balance:  util.RandomBalance(),
 		Currency: util.RandomCurrency(currencies),
 	}
-	require.NotEqual(t, "", arg.Currency)
 
 	result, err := testQueries.CreateAccount(context.Background(), arg)
-	require.NotNil(t, result)
+	require.NotNil(t, result, err)
 	require.NoError(t, err)
 
 	getArg := GetAccountParams{
@@ -99,20 +107,24 @@ func TestDeleteAcc(t *testing.T) {
 }
 
 func TestListAccount(t *testing.T) {
-	for i := 0; i < 8; i++ {
-		testCreateAccount(t)
+	var lastAccount Account
+	for i := 0; i < 10; i++ {
+		lastAccount = testCreateAccount(t)
 	}
 
 	arg := ListAccountsParams{
+		Owner:  lastAccount.Owner,
 		Limit:  5,
-		Offset: 3, // 첫 3개 레코드를 건너뛰고 5개를 반환
+		Offset: 0,
 	}
+
 	accounts, err := testQueries.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
-	require.Len(t, accounts, int(arg.Limit))
+	require.NotEmpty(t, accounts)
 
-	for _, a := range accounts {
-		require.NotEmpty(t, a)
+	for _, account := range accounts {
+		require.NotEmpty(t, account)
+		require.Equal(t, lastAccount.Owner, account.Owner)
 	}
 
 }

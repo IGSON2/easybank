@@ -67,12 +67,13 @@ func RandomCurrency(exist []string) string {
 	if len(exist) == 0 {
 		newCur = Currencies[rand.Intn(len(Currencies))]
 	}
-	for _, e := range exist {
-		ranCur := Currencies[rand.Intn(len(Currencies))]
-		if e == ranCur {
+	combine := strings.Join(exist, "")
+	for _, c := range Currencies {
+		if strings.Contains(combine, c) {
 			continue
+		} else {
+			newCur = c
 		}
-		newCur = ranCur
 	}
 	return newCur
 }
