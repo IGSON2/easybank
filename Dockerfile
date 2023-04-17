@@ -17,7 +17,7 @@ COPY start.sh .
 COPY wait-for.sh .
 COPY db/migration ./migration
 
-EXPOSE 4000
+EXPOSE 3001
 CMD ["/app/main"]
 
 # wait-for를 통해 mysql:3360이 실행될 때까지 기다린다. 이후 /app/start.sh를 실행한다.
